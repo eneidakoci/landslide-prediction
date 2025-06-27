@@ -17,43 +17,43 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import joblib
 
-# === 1. Load dataset
+# 1. Load dataset
 df = pd.read_csv(r"C:\Users\User\Desktop\cleaned_training_dataset_rounded.csv")
 
-# === 2. Drop duplicates ===
+# 2. Drop duplicates
 df = df.drop_duplicates()
 print(f"✅ Removed duplicates. Dataset now has {len(df)} rows.")
 
-# === 3. Shuffle the dataset ===
+# 3. Shuffle the dataset
 df = df.sample(frac=1, random_state=42).reset_index(drop=True)
 
-# === 4. Check class balance ===
+# 4. Check class balance
 print("Class distribution:\n", df['Class'].value_counts())
 sns.countplot(data=df, x='Class')
 plt.title("Class Distribution")
 plt.show()
 
-# === 5. Check duplicates (potential leakage) ===
+# 5. Check duplicates (for potential leakage)
 dupes = df.duplicated().sum()
 print(f"🔁 Duplicated rows in dataset: {dupes}")
 
-# === 6. Split features and target ===
+# 6. Split features and target
 X = df.drop('Class', axis=1)
 y = df['Class']
 
-# === 7. Train/test split ===
+# 7. Train/test split
 X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.2, random_state=42, stratify=y)
 
 overlapping = pd.merge(X_train, X_test, how='inner')
 print(f"❗ Overlapping samples between train/test: {len(overlapping)}")
 
-# === 8. Scale data ===
+# 8. Scale data
 scaler = StandardScaler()
 X_train_scaled = scaler.fit_transform(X_train)
 X_test_scaled = scaler.transform(X_test)
 
-# === 9. Evaluation function ===
+# 9. Evaluation function
 model_scores = {}
 
 def evaluate_model(name, model, X_test, y_test, scaled=False):
@@ -93,7 +93,7 @@ def evaluate_model(name, model, X_test, y_test, scaled=False):
         plt.title(f"{name} - Precision-Recall Curve")
         plt.show()
 
-# === 10. Cross-validation ===
+# 10. Cross-validation
 def cross_validate_model(name, model, X, y, cv=5, scale=False):
     if scale:
         from sklearn.pipeline import make_pipeline
@@ -103,7 +103,7 @@ def cross_validate_model(name, model, X, y, cv=5, scale=False):
         scores = cross_val_score(model, X, y, cv=cv, scoring='accuracy')
     print(f"🔁 {name} Cross-Validation Accuracy ({cv}-fold): {scores.mean():.4f} ± {scores.std():.4f}")
 
-# === 11. Train and evaluate models ===
+# 11. Train and evaluate models
 
 # Random Forest
 rf = RandomForestClassifier(n_estimators=100, random_state=42)
@@ -129,12 +129,12 @@ evaluate_model("XGBoost", xgb, X_test, y_test)
 cross_validate_model("XGBoost", xgb, X, y)
 
 
-# === 12. Identify Best Model ===
+# 12. Identify Best Model
 best_by_f1 = max(model_scores.items(), key=lambda x: x[1]['f1_score'])
 print("\n🏆 Best Model by F1 Score:", best_by_f1[0])
 print("F1 Score:", best_by_f1[1]['f1_score'])
 
-# === 13. Comparison Chart ===
+# 13. Comparison Chart
 score_df = pd.DataFrame.from_dict(model_scores, orient='index')
 score_df = score_df[["accuracy", "precision", "recall", "f1_score"]]
 score_df.plot(kind='bar', figsize=(12, 6), colormap='Set2')
@@ -147,7 +147,7 @@ plt.legend(loc='lower right')
 plt.tight_layout()
 plt.show()
 
-# === 14. Save models ===
+# 14. Save models
 joblib.dump(rf, r"random_forest_model.pkl")
 joblib.dump(svm, r"svm_model.pkl")
 joblib.dump(xgb, r"xgboost_model.pkl")

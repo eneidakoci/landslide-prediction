@@ -3,7 +3,6 @@ import seaborn as sns
 import matplotlib
 import matplotlib.pyplot as plt
 
-# Optional: force matplotlib to use the TkAgg backend
 matplotlib.use("TkAgg")
 
 # Load your dataset
