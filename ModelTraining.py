@@ -5,7 +5,6 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.svm import SVC
 from xgboost import XGBClassifier
-from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import (
     accuracy_score, precision_score, recall_score, f1_score,
     confusion_matrix, ConfusionMatrixDisplay,
@@ -22,7 +21,7 @@ df = pd.read_csv(r"C:\Users\User\Desktop\cleaned_training_dataset_rounded.csv")
 
 # 2. Drop duplicates
 df = df.drop_duplicates()
-print(f"✅ Removed duplicates. Dataset now has {len(df)} rows.")
+print(f" Removed duplicates. Dataset now has {len(df)} rows.")
 
 # 3. Shuffle the dataset
 df = df.sample(frac=1, random_state=42).reset_index(drop=True)
@@ -33,9 +32,9 @@ sns.countplot(data=df, x='Class')
 plt.title("Class Distribution")
 plt.show()
 
-# 5. Check duplicates (for potential leakage)
+# 5. Check duplicates again (for potential leakage)
 dupes = df.duplicated().sum()
-print(f"🔁 Duplicated rows in dataset: {dupes}")
+print(f" Duplicated rows in dataset: {dupes}")
 
 # 6. Split features and target
 X = df.drop('Class', axis=1)
@@ -46,7 +45,7 @@ X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.2, random_state=42, stratify=y)
 
 overlapping = pd.merge(X_train, X_test, how='inner')
-print(f"❗ Overlapping samples between train/test: {len(overlapping)}")
+print(f" Overlapping samples between train/test: {len(overlapping)}")
 
 # 8. Scale data
 scaler = StandardScaler()
@@ -60,10 +59,10 @@ def evaluate_model(name, model, X_test, y_test, scaled=False):
     y_pred = model.predict(X_test)
     y_proba = model.predict_proba(X_test)[:, 1] if hasattr(model, "predict_proba") else None
 
-    acc = accuracy_score(y_test, y_pred)
-    prec = precision_score(y_test, y_pred)
-    rec = recall_score(y_test, y_pred)
-    f1 = f1_score(y_test, y_pred)
+    acc = accuracy_score(y_test, y_pred) # Correct predictions overall
+    prec = precision_score(y_test, y_pred) #Of the predicted landslides, how  many were correct
+    rec = recall_score(y_test, y_pred) #how many actual landslides were caught
+    f1 = f1_score(y_test, y_pred) # Mean of precision and recall
 
     model_scores[name] = {
         "model": model,
@@ -74,7 +73,7 @@ def evaluate_model(name, model, X_test, y_test, scaled=False):
         "f1_score": f1
     }
 
-    print(f"\n📊 {name} Evaluation:")
+    print(f"\n {name} Evaluation:")
     print(f"Accuracy:  {acc:.4f}")
     print(f"Precision: {prec:.4f}")
     print(f"Recall:    {rec:.4f}")
@@ -101,7 +100,7 @@ def cross_validate_model(name, model, X, y, cv=5, scale=False):
         scores = cross_val_score(pipeline, X, y, cv=cv, scoring='accuracy')
     else:
         scores = cross_val_score(model, X, y, cv=cv, scoring='accuracy')
-    print(f"🔁 {name} Cross-Validation Accuracy ({cv}-fold): {scores.mean():.4f} ± {scores.std():.4f}")
+    print(f" {name} Cross-Validation Accuracy ({cv}-fold): {scores.mean():.4f} ± {scores.std():.4f}")
 
 # 11. Train and evaluate models
 
@@ -131,7 +130,7 @@ cross_validate_model("XGBoost", xgb, X, y)
 
 # 12. Identify Best Model
 best_by_f1 = max(model_scores.items(), key=lambda x: x[1]['f1_score'])
-print("\n🏆 Best Model by F1 Score:", best_by_f1[0])
+print("\n Best Model by F1 Score:", best_by_f1[0])
 print("F1 Score:", best_by_f1[1]['f1_score'])
 
 # 13. Comparison Chart
@@ -152,4 +151,4 @@ joblib.dump(rf, r"random_forest_model.pkl")
 joblib.dump(svm, r"svm_model.pkl")
 joblib.dump(xgb, r"xgboost_model.pkl")
 joblib.dump(scaler, r"scaler.pkl")
-print("\n✅ All models and scaler saved.")
+print("\n All models and scaler saved.")

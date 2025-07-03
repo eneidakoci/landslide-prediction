@@ -26,7 +26,7 @@ xgb = XGBClassifier(eval_metric='logloss', random_state=42)
 xgb.fit(X_train, y_train)
 y_pred = xgb.predict(X_test)
 
-# 6. Evaluate (F1 Only)
+# 6. Evaluate
 print("\n📊 Evaluation on Noisy Data:")
 print(classification_report(y_test, y_pred))
 print(f"F1 Score: {f1_score(y_test, y_pred):.4f}")

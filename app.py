@@ -10,7 +10,7 @@ st.title("🌍 Landslide Risk Prediction")
 st.subheader("Tirana, Albania")
 st.write("Enter values to estimate landslide probability and visualize risk level:")
 
-# === Mappings ===
+# Mappings from numerical to categorical
 geology_labels = {
     "Deluvium": 1,
     "Breccia & Deluvium": 2,
@@ -45,18 +45,18 @@ moisture_labels = {
 }
 
 
-# === Input Fields ===
+# Input Fields
 elevation = st.slider("Elevation (m)", 0, 2000, 500)
 slope = st.slider("Slope (°)", 0, 90, 15)
 geology_label = st.selectbox("Geology", options=list(geology_labels.keys()))
-seismicity = st.slider("Seismicity (PGA)", 0.0, 1.0, 0.3)
+seismicity = st.slider("Seismicity (PGA)", 0.0, 0.5, 0.3)
 land_label = st.selectbox("Land Classification", options=list(land_labels.keys()))
 erosion = st.slider("Erosion Rate", 0.0, 5.0, 1.0)
 precipitation = st.slider("Precipitation (mm)", 0, 4000, 1200)
 moisture_label = st.selectbox("Soil Moisture", options=list(moisture_labels.keys()))
 
-# === Send prediction request ===
-if st.button("🎯 Predict Risk"):
+# Send prediction request
+if st.button(" Predict Risk"):
     payload = {
         "Elevation": elevation,
         "Slope_inclination_degrees": slope,
@@ -75,7 +75,7 @@ if st.button("🎯 Predict Risk"):
         st.session_state.prediction_result = result
 
     except Exception as e:
-        st.error(f"❌ Prediction failed: {e}")
+        st.error(f" Prediction failed: {e}")
         st.info("Make sure the FastAPI backend is running on port 8502")
 
 # === Display Results ===
@@ -90,15 +90,6 @@ if "prediction_result" in st.session_state:
             "#f1c40f" if prob < 60 else "#e67e22" if prob < 80 else "#e74c3c"
 
     m = folium.Map(location=[41.33, 19.82], zoom_start=11)
-    # folium.CircleMarker(
-    #     location=[41.33, 19.82],
-    #     radius=50,
-    #     popup=f"Risk Level: {result['risk_level']}",
-    #     color="black",
-    #     fill=True,
-    #     fill_color=color,
-    #     fill_opacity=0.6
-    # ).add_to(m)
     folium.CircleMarker(
         location=[41.33, 19.82],
         radius=100,
