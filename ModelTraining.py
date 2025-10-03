@@ -17,7 +17,7 @@ import seaborn as sns
 import joblib
 
 # 1. Load dataset
-df = pd.read_csv(r"C:\Users\User\Desktop\cleaned_training_dataset_rounded.csv")
+df = pd.read_csv(r"C:\Users\User\Desktop\Diploma\cleaned_training_dataset_rounded.csv")
 
 # 2. Drop duplicates
 df = df.drop_duplicates()
