@@ -10,7 +10,7 @@ df = pd.read_csv(r"C:\Users\User\Desktop\training_dataset.csv")
 df.columns = [col.strip().replace(" ", "_").replace("(", "").replace(")", "").replace("-", "_") for col in df.columns]
 
 
-# Fix range values in 'Precipitation' column (e.g., '1600-1800' -> 1700)
+# Fix range values in 'Precipitation' column
 def parse_precip(val):
     if pd.isna(val):
         return np.nan
@@ -62,5 +62,5 @@ df['Class'] = df['Class'].astype(int)
 # Save cleaned data
 df.to_csv(r"C:\Users\User\Desktop\cleaned_training_dataset.csv", index=False)
 
-print("✅ Dataset cleaned successfully.")
-print("ℹ️  'unknown' is encoded separately. Missing numerical values are filled with class-based medians.")
+print("Dataset cleaned successfully.")
+print("ℹ'unknown' is encoded separately. Missing numerical values are filled with class-based medians.")

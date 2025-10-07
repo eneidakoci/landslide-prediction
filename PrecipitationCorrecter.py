@@ -15,10 +15,10 @@ if 'Precipitation' in df.columns:
     df = df.dropna(subset=['Precipitation'])
     df['Precipitation'] = df['Precipitation'].apply(round_nearest_100)
 else:
-    print("❌ 'Precipitation' column not found in the dataset.")
+    print(" 'Precipitation' column not found in the dataset.")
 
 # Save the updated dataset
 output_path = r"C:\Users\User\Desktop\cleaned_training_dataset_rounded.csv"
 df.to_csv(output_path, index=False)
 
-print(f"✅ Precipitation column rounded to nearest 100 and saved to {output_path}")
+print(f" Precipitation column rounded to nearest 100 and saved to {output_path}")

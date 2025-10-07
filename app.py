@@ -78,13 +78,13 @@ if st.button(" Predict Risk"):
         st.error(f" Prediction failed: {e}")
         st.info("Make sure the FastAPI backend is running on port 8502")
 
-# Display of prediction results
+# prediction results
 if "prediction_result" in st.session_state:
     result = st.session_state.prediction_result
     st.success(f"🎯 Probability: **{result['probability']}%**")
     st.markdown(f"### ⚠️ Risk Level: **{result['risk_level']}**")
 
-    # Drawing of map
+    # map
     prob = result["probability"]
     color = "#2ecc71" if prob < 20 else "#27ae60" if prob < 40 else \
             "#f1c40f" if prob < 60 else "#e67e22" if prob < 80 else "#e74c3c"
