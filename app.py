@@ -69,7 +69,7 @@ if st.button(" Predict Risk"):
     }
 
     try:
-        response = requests.post("http://127.0.0.1:8502/predict/", json=payload)
+        response = requests.post("https://landslide-prediction-red.vercel.app/", json=payload)
         response.raise_for_status()
         result = response.json()
         st.session_state.prediction_result = result
