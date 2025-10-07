@@ -3,7 +3,7 @@
 This project aims to create a machine learning system for predicting landslide risk in Tirana, Albania.
 
 
-**Dependencies needed**
+**Dependencies needed:**
 
   pip install streamlit fastapi uvicorn requests folium streamlit-folium pandas numpy scikit-learn xgboost joblib matplotlib seaborn
 
@@ -18,7 +18,7 @@ uvicorn api:app --reload --port 8502
 streamlit run app.py
 
 
-**Project Structure**
+**Project Structure:**
 
   ModelTraining.py - Trains Random Forest, SVM, and XGBoost models
   
@@ -29,7 +29,7 @@ streamlit run app.py
   xgboost_model.pkl - Trained model file (best performing)
 
 
-**Features**
+**Features:**
 
   Predicts landslide risk based on terrain and environmental factors
   
