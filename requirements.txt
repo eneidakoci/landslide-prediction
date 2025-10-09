@@ -1,6 +1,11 @@
 fastapi
-uvicorn
-joblib
+uvicorn[standard]
+requests
 numpy
-scikit-learn
-pydantic
+pandas
+geopandas
+shapely
+joblib
+streamlit
+streamlit-folium
+folium

@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import joblib
 
-# 1. Load dataset
+# 1. Loading dataset
 df = pd.read_csv(r"C:\Users\User\Desktop\Diploma\cleaned_training_dataset_rounded.csv")
 
 # 2. Drop duplicates
@@ -32,7 +32,7 @@ sns.countplot(data=df, x='Class')
 plt.title("Class Distribution")
 plt.show()
 
-# 5. Check duplicates again (for potential leakage)
+# 5. Check duplicates again
 dupes = df.duplicated().sum()
 print(f" Duplicated rows in dataset: {dupes}")
 
