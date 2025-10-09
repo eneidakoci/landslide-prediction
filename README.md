@@ -5,7 +5,7 @@ This project aims to create a machine learning system for predicting landslide r
 
 **Dependencies needed:**
 
-  pip install streamlit fastapi uvicorn requests folium streamlit-folium pandas numpy scikit-learn xgboost joblib matplotlib seaborn
+  pip install streamlit fastapi uvicorn requests folium streamlit-folium pandas numpy scikit-learn xgboost joblib matplotlib seaborn python-dotenv
 
 
 **Start the backend:**
@@ -36,3 +36,15 @@ streamlit run app.py
   Interactive map visualization
   
   Risk levels: Very Low, Low, Moderate, High, Very High
+
+
+**New endpoints:**
+
+- GET /features?lat&lng → returns aggregated features used for prediction (synthetic for now)
+- GET /predict_at?lat&lng → aggregates features then returns probability, risk level, and features
+
+
+Notes on data sources:
+- Geology and erosion are currently synthesized deterministically from lat/lng (no external vendors).
+- The response includes `sources` flags indicating `"synthetic"` for these fields.
+- This keeps the stack fully open-source. You can later swap in open data providers without changing the API.
