@@ -266,105 +266,95 @@ def estimate_pga_from_mag_dist(mag, dist_km):
     log10_pga = a + b * mag - c * math.log10(dist_km + 1.0)
     return max(0.0, min(1.0, 10 ** log10_pga))
 
+import math
 
-def calculate_rusle_erosion(precip_mm: float, slope_deg: float, geology_code: int, land_code: int,
-                            moisture: float = 0.25):
+WATER_CODES = [0]
+
+def calculate_rusle_erosion(precip_mm, slope_deg, geology_code, land_code, moisture=0.25, debug=False):
     """
-    erosion_class where:
-        0 = Very High Erosion (BAD - high landslide risk)
+    Returns erosion_class:
+        0 = Very High Erosion
         1 = Medium Erosion
-        2 = Unknown
-        3 = Low Erosion (GOOD - low landslide risk)
+        2 = Moderate Erosion
+        3 = Low Erosion
     """
-    # R factor (Rainfall erosivity)
-    if precip_mm < 400:
-        R = 50.0
-    elif precip_mm > 2500:
-        R = 800.0
-    else:
-        R = 0.0483 * (precip_mm ** 1.61)
-        R = min(max(R, 50), 800)
+    # Handle water / flat areas
+    if slope_deg is None or precip_mm is None or precip_mm <= 0:
+        return 2  # Unknown
+    if slope_deg < 0.2 or land_code in WATER_CODES:
+        return 3  # Low erosion
 
-    # K factor (Soil erodibility)
-    k_values = {
-        1: 0.45, 2: 0.38, 3: 0.18, 4: 0.15, 5: 0.42,
-        7: 0.40, 8: 0.35, 10: 0.22, 12: 0.38, 13: 0.30, 17: 0.25
-    }
-    K = k_values.get(geology_code, 0.30)
+    # --- 1. R factor: scale yearly rainfall to realistic RUSLE values ---
+    # Scale: typical RUSLE uses monthly/event data, divide yearly by ~12 to reduce exaggeration
+    R = 0.0483 * ((precip_mm / 12) ** 1.61)
+    R = max(20, min(R, 200))  # realistic yearly-scaled cap
 
-    # LS factor (Slope length and steepness)
-    if slope_deg < 0.5:
-        LS = 0.1
-    else:
-        if slope_deg < 9:
-            S = 10.8 * math.sin(math.radians(slope_deg)) + 0.03
-        else:
-            S = 16.8 * math.sin(math.radians(slope_deg)) - 0.50
-        m = 0.5 if slope_deg >= 5 else 0.4 if slope_deg >= 3 else 0.3
-        L = (100 / 22.13) ** m
-        LS = min(L * S, 20.0)
+    # --- 2. K factor (soil erodibility) ---
+    k_values = {1:0.45,2:0.38,3:0.18,4:0.15,5:0.42,7:0.40,8:0.35,10:0.22,12:0.38,13:0.30,17:0.25}
+    K = k_values.get(int(geology_code) if geology_code is not None else 0, 0.30)
 
-    # C factor (Cover management)
-    c_values = {
-        0: 0.35, 1: 0.55, 2: 0.001, 3: 0.40, 4: 0.15,
-        5: 0.002, 6: 0.70, 7: 0.20, 8: 0.30, 9: 0.40
-    }
-    C = c_values.get(land_code, 0.40)
+    # --- 3. LS factor ---
+    slope_rad = math.radians(slope_deg)
+    S = 10.8 * math.sin(slope_rad) + 0.03 if slope_deg < 9 else 16.8 * math.sin(slope_rad) - 0.50
+    m = 0.5 if slope_deg >= 5 else 0.4 if slope_deg >= 3 else 0.3
+    L = (72 / 22.13) ** m  # standard slope length
+    LS = max(0.01, min(L * S, 15))
 
-    # P factor (Support practice)
-    if land_code == 0:
-        P = 0.5 if slope_deg > 20 else 0.6 if slope_deg > 10 else 0.8
-    elif land_code in [2, 5]:
+    # --- 4. C factor ---
+    c_values = {0:0.35,1:0.55,2:0.001,3:0.40,4:0.15,5:0.002,6:0.70,7:0.20,8:0.30,9:0.40}
+    C = c_values.get(int(land_code) if land_code is not None else 0, 0.40)
+
+    # --- 5. P factor ---
+    if land_code in [2,5]:
         P = 0.4
-    elif land_code in [4, 7, 8]:
+    elif land_code in [4,7,8]:
         P = 0.7
+    elif land_code == 0:
+        P = 0.5 if slope_deg>20 else 0.6 if slope_deg>10 else 0.8
     elif land_code == 1:
         P = 0.9
     else:
         P = 0.85
 
-    # M factor (Moisture adjustment)
-    if moisture < 0.15:
-        M = 0.8
-    elif moisture < 0.30:
-        M = 1.0
-    elif moisture < 0.40:
-        M = 1.15
-    else:
-        M = 1.3
+    # --- 6. Moisture factor ---
+    if moisture < 0.15: M = 0.7
+    elif moisture < 0.30: M = 1.0
+    elif moisture < 0.40: M = 1.2
+    else: M = 1.4
 
-    # Calculate soil loss (tons/hectare/year)
+    # --- 7. Compute soil loss ---
     A = R * K * LS * C * P * M
 
-    # Convert to erosion index (0-5)
-    if A <= 10:
-        erosion_index = (A / 10.0) * 1.0
-    elif A <= 25:
-        erosion_index = 1.0 + ((A - 10) / 15.0) * 1.0
-    elif A <= 50:
-        erosion_index = 2.0 + ((A - 25) / 25.0) * 1.0
-    elif A <= 75:
-        erosion_index = 3.0 + ((A - 50) / 25.0) * 1.0
+    #  8. Thresholds for yearly data
+    if A > 50:
+        erosion_class = 0  # Very High
+    elif A > 25:
+        erosion_class = 1  # Medium
+    elif A > 5:
+        erosion_class = 2  # Moderate
     else:
-        erosion_index = 4.0 + min((A - 75) / 50.0, 1.0)
+        erosion_class = 3  # Low
 
-    erosion_index = max(0.0, min(erosion_index, 5.0))
+    if debug:
+        names = {0:"Very High",1:"Medium",2:"Moderate",3:"Low"}
+        print(f"R={R:.1f}, K={K:.2f}, LS={LS:.2f}, C={C:.3f}, P={P:.2f}, M={M:.2f}, A={A:.2f} -> Class {erosion_class} ({names[erosion_class]})")
 
-
-    if A is None or A == 0:
-        erosion_class = 2
-    elif erosion_index >= 3.5:
-        erosion_class = 0
-    elif erosion_index >= 2.0:
-        erosion_class = 1
-    elif erosion_index >= 0.5:
-        erosion_class = 3
-    else:
-        erosion_class = 3
-
-    print(f"   Erosion: A={A:.1f}, index={erosion_index:.2f}, class={erosion_class}")
     return erosion_class
 
+
+# --- TEST
+# if __name__ == "__main__":
+#     print("=== RUSLE Erosion Test Grid ===")
+#     for slope in [0.1, 5, 15, 30]:         # degrees
+#         for precip in [400, 800, 1500, 2500]:  # mm
+#             erosion = calculate_rusle_erosion(
+#                 precip_mm=precip,
+#                 slope_deg=slope,
+#                 geology_code=3,
+#                 land_code=1,
+#                 moisture=0.25,
+#                 debug=True
+#             )
 
 class InputFeatures(BaseModel):
     Elevation: float
