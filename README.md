@@ -42,6 +42,7 @@ streamlit run app.py
 
 - GET /features?lat&lng → returns aggregated features used for prediction (synthetic for now)
 - GET /predict_at?lat&lng → aggregates features then returns probability, risk level, and features
+- GET /landslides?year → returns in the map the landslides recorded in Albania (Tirana) and optionally filters by year. A table with data for the retrieved landslides is created.
 
 
 Notes on data sources:
